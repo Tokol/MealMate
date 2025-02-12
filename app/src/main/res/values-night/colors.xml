@@ -4,6 +4,9 @@
     <color name="primary">#FF8F00</color>
     <color name="primary_variant">#DD2C00</color>
     <color name="on_primary">#000000</color>
+    <color name="on_primary_variant">#333333</color>
+
+
 
     <!-- Secondary Colors -->
     <color name="secondary">#FFCC80</color>
@@ -16,6 +19,7 @@
     <color name="background">#1E1E1E</color>
     <color name="surface">#424242</color>
     <color name="on_surface">#FFFFFF</color>
+    <color name="on_surface_variant">#BDBDBD</color>
 
     <!-- State Colors -->
     <color name="error">#CF6679</color>

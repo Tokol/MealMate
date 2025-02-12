@@ -8,4 +8,21 @@
     <!-- Button Texts -->
     <string name="signup">Sign Up</string>
     <string name="signIn">Log In</string>
+    <string name="logoDesc">This is logo of MealMate </string>
+    <string name="alreadyHaveAccountSignIn">Already have an account? <b>Sign In</b></string>
+
+
+    <!-- Input Field Hints -->
+    <string name="enterEmail">Enter your email</string>
+    <string name="choosePass">Choose a password</string>
+    <string name="confirmPass">Confirm your password</string>
+
+    <string name="enterPass"> Enter your password</string>
+    <string name="forgotPas">Forgot Password?</string>
+
+    <string name="forgot_password">Forgot Password</string>
+    <string name="enter_email">Enter your email</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="back_to_sign_in">Back to Sign In</string>
+
 </resources>
