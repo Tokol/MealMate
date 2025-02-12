@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary">#FF6D00</color>
+    <color name="primary_variant">#DD2C00</color>
+    <color name="on_primary">#FFFFFF</color>
+
+    <!-- Secondary Colors -->
+    <color name="secondary">#FFAB40</color>
+    <color name="on_secondary">#000000</color>
+
+    <!-- Tertiary Colors -->
+    <color name="tertiary">#FF7043</color>
+
+    <!-- Background and Surface -->
+    <color name="background">#FFF3E0</color>
+    <color name="surface">#FFE0B2</color>
+    <color name="on_surface">#4E342E</color>
+
+    <!-- State Colors -->
+    <color name="error">#D32F2F</color>
+    <color name="success">#2E7D32</color>
+
+    <!-- Neutral Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
