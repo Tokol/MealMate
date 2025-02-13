@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -23,6 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private TextInputEditText etEmail, etPassword;
     private MaterialButton btnSignIn;
+    private MaterialTextView forgotPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,9 +39,16 @@ public class LoginActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnSignIn = findViewById(R.id.btnSignIn);
+        forgotPassword = findViewById(R.id.tvForgotPassword);
 
         // Sign In Button Click
         btnSignIn.setOnClickListener(v -> loginUser(v));
+        forgotPassword.setOnClickListener(v->redirectToForgetPassword(v));
+    }
+
+
+    private void redirectToForgetPassword(View view){
+        goToActivity(ForgotPasswordActivity.class);
     }
 
     private void loginUser(View view) {
