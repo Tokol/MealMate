@@ -25,4 +25,7 @@
     <string name="reset_password">Reset Password</string>
     <string name="back_to_sign_in">Back to Sign In</string>
 
+
+    <string name="loading">Please wait, MealMate is processing...</string>
+
 </resources>

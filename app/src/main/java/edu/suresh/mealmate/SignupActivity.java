@@ -6,9 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
@@ -25,6 +23,7 @@ public class SignupActivity extends AppCompatActivity {
     private TextInputEditText etEmail, etChoosePassword, etConfirmPassword;
     private MaterialButton btnSignUp;
     private MaterialTextView tvSignIn;
+    private CustomProgressDialog progressDialog; // Custom Progress Dialog
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +32,7 @@ public class SignupActivity extends AppCompatActivity {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+        progressDialog = new CustomProgressDialog(this); // Initialize Progress Dialog
 
         // Initialize Views
         etEmail = findViewById(R.id.etEmail);
@@ -53,7 +53,7 @@ public class SignupActivity extends AppCompatActivity {
         tvSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-           //     Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -79,9 +79,15 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
+        // Show Progress Dialog
+        progressDialog.show();
+
         // Firebase Signup
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
+                    // Hide Progress Dialog
+                    progressDialog.dismiss();
+
                     if (task.isSuccessful()) {
                         // Signup Success
                         FirebaseUser user = mAuth.getCurrentUser();
@@ -89,7 +95,9 @@ public class SignupActivity extends AppCompatActivity {
                             saveUserId(user.getUid());
                             showSnackbar(view, "Signup Successful! Redirecting...");
                             // Redirect to LoginActivity after success
-                            startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                            Intent intent = new Intent(SignupActivity.this, ProfileActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
                             finish();
                         }
                     } else {
