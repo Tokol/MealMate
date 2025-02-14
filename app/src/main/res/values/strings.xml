@@ -35,7 +35,18 @@
     <string name="age"> Age </string>
     <string name="save_profile"> Save Profile</string>
     <string name="gender"> Select Gender </string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <string name="upload_image">Upload Image</string>
+    <string name="add_ingredient">Add</string>
+    <string name="add_instruction">Add Instruction</string>
+    <string name="save_recipe">Save Recipe</string>
+
+    <!-- Input Hints -->
+    <string name="hint_cook_time">Enter Cook Time</string>
+    <string name="hint_missing_ingredient">Enter missing ingredient</string>
+
+    <!-- Section Titles -->
+    <string name="title_instructions">Instructions</string>
 
 </resources>
