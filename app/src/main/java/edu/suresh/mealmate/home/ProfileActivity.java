@@ -1,4 +1,4 @@
-package edu.suresh.mealmate;
+package edu.suresh.mealmate.home;
 
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
@@ -33,8 +33,9 @@ import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
+import edu.suresh.mealmate.CustomProgressDialog;
+import edu.suresh.mealmate.R;
 import okhttp3.*;
 
 public class ProfileActivity extends AppCompatActivity {

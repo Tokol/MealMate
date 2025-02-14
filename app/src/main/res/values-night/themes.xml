@@ -1,4 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.MealMate.Splash" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+
 
     <style name="Theme.MealMate" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary Colors (Dark Mode Adjusted) -->

@@ -1,10 +1,14 @@
-package edu.suresh.mealmate;
+package edu.suresh.mealmate.home;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
+
+import edu.suresh.mealmate.R;
+import edu.suresh.mealmate.auth.LoginActivity;
+import edu.suresh.mealmate.auth.SignupActivity;
 
 public class MainActivity extends AppCompatActivity {
 

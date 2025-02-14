@@ -1,4 +1,4 @@
-package edu.suresh.mealmate;
+package edu.suresh.mealmate.auth;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,9 +13,12 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import edu.suresh.mealmate.CustomProgressDialog;
+import edu.suresh.mealmate.home.ProfileActivity;
+import edu.suresh.mealmate.R;
 
 public class SignupActivity extends AppCompatActivity {
 

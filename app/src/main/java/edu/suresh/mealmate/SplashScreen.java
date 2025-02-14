@@ -6,15 +6,15 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+
+import edu.suresh.mealmate.home.DashboardActivity;
+import edu.suresh.mealmate.home.MainActivity;
+import edu.suresh.mealmate.home.ProfileActivity;
 
 public class SplashScreen extends AppCompatActivity {
 
-    private static final int SPLASH_DELAY = 3000; // 3 seconds delay
+    private static final int SPLASH_DELAY = 1000; // 3 seconds delay
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

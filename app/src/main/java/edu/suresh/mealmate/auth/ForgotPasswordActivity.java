@@ -1,4 +1,4 @@
-package edu.suresh.mealmate;
+package edu.suresh.mealmate.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +12,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
+
+import edu.suresh.mealmate.R;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
 
