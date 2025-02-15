@@ -51,5 +51,6 @@
 
     <!-- Section Titles -->
     <string name="title_instructions">Instructions</string>
+    <string name="savedRecipe">Saved Recipes</string>
 
 </resources>

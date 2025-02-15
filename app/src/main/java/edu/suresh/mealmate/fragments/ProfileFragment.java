@@ -1,5 +1,7 @@
 package edu.suresh.mealmate.fragments;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,43 +9,55 @@ import android.os.Bundle;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import androidx.appcompat.widget.Toolbar;
-
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.List;
+
 import edu.suresh.mealmate.EditProfileFromDashboard;
 import edu.suresh.mealmate.R;
+import edu.suresh.mealmate.adapters.RecipeCardAdapter;
 import edu.suresh.mealmate.home.MainActivity;
+import edu.suresh.mealmate.model.Recipe;
 import edu.suresh.mealmate.utils.AgeCalculate;
-
+import edu.suresh.mealmate.utils.FirestoreHelper;
 
 public class ProfileFragment extends Fragment {
 
     private ImageView profileImage;
     private TextView tvUserName, tvGender, tvMobileNumber, ageTv;
     private FirebaseFirestore db;
-    String userId;
+    private String userId;
     private View rootView;
+    private FirestoreHelper firestoreHelper;
+    RecyclerView recyclerView;
+
+    private TextView recipeCount, groceryCount, MealCount;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_profile, container, false);
+
+        // Initialize views
         profileImage = rootView.findViewById(R.id.profileImage);
         tvUserName = rootView.findViewById(R.id.tvUserName);
         tvGender = rootView.findViewById(R.id.tvGender);
@@ -51,8 +65,18 @@ public class ProfileFragment extends Fragment {
         ageTv = rootView.findViewById(R.id.tvAge);
         db = FirebaseFirestore.getInstance();
 
-        Toolbar toolbar = rootView.findViewById(R.id.profileToolbar);
+        recipeCount = rootView.findViewById(R.id.tvRecipes);
+        groceryCount = rootView.findViewById(R.id.tvShoppingLists);
+        MealCount = rootView.findViewById(R.id.tvMealPlans);
 
+        recyclerView = rootView.findViewById(R.id.savedRecipesRecyclerView);
+
+        recyclerView = rootView.findViewById(R.id.savedRecipesRecyclerView);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(),1));
+        firestoreHelper  = new FirestoreHelper();
+
+        // Set up MaterialToolbar
+        MaterialToolbar toolbar = rootView.findViewById(R.id.profileToolbar);
         toolbar.getMenu().clear();
         toolbar.inflateMenu(R.menu.profile_menu);
 
@@ -69,15 +93,31 @@ public class ProfileFragment extends Fragment {
 
 
 
+        // Load user data
         loadUserData();
-
         loadUserDataRemote();
+
+        firestoreHelper.loadRecipes(new FirestoreHelper.FirestoreCallback() {
+            @Override
+            public void onCallback(List<Recipe> recipeList) {
+                for (Recipe recipe : recipeList) {
+                    recipeCount.setText(String.valueOf(recipeList.size()));
+                    RecipeCardAdapter adapter = new RecipeCardAdapter(getContext(), recipeList);
+                    recyclerView.setAdapter(adapter);
+                    Log.d(TAG, "imgurl: " + recipe.getPhotoUrl());
+                    Log.d(TAG, "timestamp: " + recipe.getTimestamp());
+                    Log.d(TAG, "Recipe: " + recipe.getRecipeName());
+                    Log.d(TAG, "Cook Time: " + recipe.getCookTime());
+                    Log.d(TAG, "Ingredients: " + recipe.getIngredients().toString());
+                    Log.d(TAG, "Instructions: " + recipe.getInstructions().toString());
+                }
+            }
+        });
 
         return rootView;
     }
 
-
-    void openEditProfile(){
+    private void openEditProfile() {
         Intent intent = new Intent(getActivity(), EditProfileFromDashboard.class);
         editProfileLauncher.launch(intent);
     }
@@ -85,42 +125,40 @@ public class ProfileFragment extends Fragment {
     private final ActivityResultLauncher<Intent> editProfileLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
-                        if (result.getResultCode() == AppCompatActivity.RESULT_OK) {
-                            loadUserData(); //  Reload profile when returning from EditProfile
+                        if (result.getResultCode() == getActivity().RESULT_OK) {
+                            loadUserData(); // Reload profile when returning from EditProfile
                             loadUserDataRemote(); // Fetch latest data from Firebase
                         }
                     });
 
-    void signOutUser() {
-        new AlertDialog.Builder(requireContext())
+    private void signOutUser() {
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to log out?")
-                .setCancelable(false) // ✅ Prevents dismissing by tapping outside
+                .setCancelable(false) // Prevents dismissing by tapping outside
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // ✅ Firebase Sign Out
+                    // Firebase Sign Out
                     FirebaseAuth.getInstance().signOut();
 
-                    // ✅ Clear SharedPreferences
+                    // Clear SharedPreferences
                     SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.clear(); // Clears all saved values
                     editor.apply();
 
-                    // ✅ Navigate to MainActivity and clear backstack
+                    // Navigate to MainActivity and clear backstack
                     Intent intent = new Intent(requireActivity(), MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Prevents going back to Profile
                     startActivity(intent);
-                    requireActivity().finish(); // ✅ Ensures ProfileFragment is fully removed
+                    requireActivity().finish(); // Ensures ProfileFragment is fully removed
                 })
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss()) // ✅ Fix: Properly dismisses dialog
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss()) // Properly dismisses dialog
                 .show();
     }
 
-
-
     private void loadUserData() {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-         userId = sharedPreferences.getString("USER_ID", null);
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        userId = sharedPreferences.getString("USER_ID", null);
         String name = sharedPreferences.getString("USER_NAME", null);
         String mobile = sharedPreferences.getString("USER_MOBILE", null);
         String dob = sharedPreferences.getString("USER_DOB", null);
@@ -130,66 +168,70 @@ public class ProfileFragment extends Fragment {
         tvUserName.setText(name);
         tvGender.setText(gender);
         tvMobileNumber.setText(mobile);
+
         if (dob != null && !dob.isEmpty()) {
             AgeCalculate ageCalculate = new AgeCalculate();
             int age = ageCalculate.calculateAge(dob);
-            ageTv.setText(String.valueOf(age) + " years");
+            ageTv.setText(age + " years");
         } else {
             ageTv.setText("N/A");
         }
 
-        if (!photoUrl.isEmpty()) {
+        // Load profile image
+        if (photoUrl != null && !photoUrl.isEmpty()) {
             Glide.with(this)
                     .load(photoUrl)
                     .placeholder(R.drawable.ic_men) // Fallback image
                     .error(R.drawable.profile_border) // Error case
                     .into(profileImage);
-        }
-    }
-
-
-
-
-private void loadUserDataRemote() {
- // Replace with actual User ID
-    if (userId == null) {
-        showSnackbar("User ID not found in SharedPreferences");
-        return;
-    }
-
-
-    DocumentReference docRef = db.collection("Users").document(userId);
-    docRef.get().addOnSuccessListener(documentSnapshot -> {
-        if (!isAdded()) {
-            return; //
-        }
-
-        if (documentSnapshot.exists()) {
-            String name = documentSnapshot.getString("name");
-            String gender = documentSnapshot.getString("gender");
-            String mobile = documentSnapshot.getString("mobile");
-            String dob = documentSnapshot.getString("dob");
-            String photoUrl = documentSnapshot.getString("photoUrl");
-
-            SharedPreferences sharedPref = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
-
-            editor.putString("USER_NAME", name);
-            editor.putString("USER_MOBILE", mobile);
-            editor.putString("USER_DOB", dob);
-            editor.putString("USER_GENDER", gender);
-            editor.putString("USER_PHOTO", photoUrl);
-
-            loadUserData();
-
         } else {
-            showSnackbar("User data not found on firebase");
+            profileImage.setImageResource(R.drawable.ic_men); // Default image
         }
-    }).addOnFailureListener(e -> showSnackbar("Failed to load data from firebase"));
-}
+    }
+
+    private void loadUserDataRemote() {
+        if (userId == null) {
+            showSnackbar("User ID not found in SharedPreferences");
+            return;
+        }
+
+        DocumentReference docRef = db.collection("Users").document(userId);
+        docRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (!isAdded()) {
+                return; // Fragment is not attached
+            }
+
+            if (documentSnapshot.exists()) {
+                String name = documentSnapshot.getString("name");
+                String gender = documentSnapshot.getString("gender");
+                String mobile = documentSnapshot.getString("mobile");
+                String dob = documentSnapshot.getString("dob");
+                String photoUrl = documentSnapshot.getString("photoUrl");
+
+                SharedPreferences sharedPref = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+
+                editor.putString("USER_NAME", name);
+                editor.putString("USER_MOBILE", mobile);
+                editor.putString("USER_DOB", dob);
+                editor.putString("USER_GENDER", gender);
+                editor.putString("USER_PHOTO", photoUrl);
+                editor.apply();
+
+                loadUserData(); // Refresh UI with updated data
+            } else {
+                showSnackbar("User data not found on Firebase");
+            }
+        }).addOnFailureListener(e -> showSnackbar("Failed to load data from Firebase: " + e.getMessage()));
+    }
+
+
+
+    void loadRecipeList(){
+
+    }
 
     private void showSnackbar(String message) {
         Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();
     }
-
 }
