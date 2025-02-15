@@ -263,7 +263,7 @@ public class AddRecipeFragment extends Fragment {
         if (selectedImageUri != null) {
             uploadImageToImgur(selectedImageUri, recipeData); // Pass recipeData to uploadImageToImgur
         } else {
-            RecipeDataSend("", recipeData); // Send recipe data without an image
+            RecipeDataSend("", recipeData); // Pass empty string as photoUrl
         }
     }
     private void uploadImageToImgur(Uri imageUri, Map<String, Object> recipeData) {
@@ -338,9 +338,12 @@ public class AddRecipeFragment extends Fragment {
         }
     }
     void RecipeDataSend(String photoUrl, Map<String, Object> recipeData) {
+        progressDialog.show();
         long timestamp = System.currentTimeMillis();
         if (photoUrl != null && !photoUrl.isEmpty()) {
             recipeData.put("photoUrl", photoUrl); // Add the photo URL if available
+        } else {
+            recipeData.put("photoUrl", ""); // Save empty string if no photo is selected
         }
         recipeData.put("timestamp", timestamp);
 
