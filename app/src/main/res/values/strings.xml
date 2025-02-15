@@ -42,8 +42,11 @@
     <string name="add_instruction">Add Instruction</string>
     <string name="save_recipe">Save Recipe</string>
 
+    <string name="title_recipe_name">Recipe Name</string>
+    <string name="hint_recipe_name">Enter the recipe name</string>
+
     <!-- Input Hints -->
-    <string name="hint_cook_time">Enter Cook Time</string>
+    <string name="hint_cook_time">Enter Cook Time (in Minutes)</string>
     <string name="hint_missing_ingredient">Enter missing ingredient</string>
 
     <!-- Section Titles -->
