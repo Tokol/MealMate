@@ -189,6 +189,8 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+
+
     private void loadUserDataRemote() {
         if (userId == null) {
             showSnackbar("User ID not found in SharedPreferences");
@@ -227,9 +229,6 @@ public class ProfileFragment extends Fragment {
 
 
 
-    void loadRecipeList(){
-
-    }
 
     private void showSnackbar(String message) {
         Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();

@@ -41,6 +41,7 @@
     <string name="add_ingredient">Add</string>
     <string name="add_instruction">Add Instruction</string>
     <string name="save_recipe">Save Recipe</string>
+    <string name="update_recipe"> Update Recipe</string>
 
     <string name="title_recipe_name">Recipe Name</string>
     <string name="hint_recipe_name">Enter the recipe name</string>
