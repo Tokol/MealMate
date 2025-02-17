@@ -8,6 +8,7 @@
 
 
 
+
     <!-- Secondary Colors -->
     <color name="secondary">#FFCC80</color>
     <color name="on_secondary">#000000</color>
@@ -28,4 +29,11 @@
     <!-- Neutral Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="breakfastYellow">#FFEB3B</color>
+    <color name="lunchGreen">#4CAF50</color>
+    <color name="dinnerOrange">#FF7043</color>
+
+    <color name="textDarkBrown">#4E342E</color>  <!-- Dark Brown for better contrast on yellow/orange -->
+    <color name="textLightBeige">#FFF3E0</color>
 </resources>

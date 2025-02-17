@@ -53,5 +53,8 @@
     <!-- Section Titles -->
     <string name="title_instructions">Instructions</string>
     <string name="savedRecipe">Saved Recipes</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 
 </resources>

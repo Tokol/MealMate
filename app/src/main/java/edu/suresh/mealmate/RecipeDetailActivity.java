@@ -20,10 +20,14 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import edu.suresh.mealmate.adapters.InstructionDetailAdapter;
@@ -121,54 +125,113 @@ public class RecipeDetailActivity extends AppCompatActivity {
     }
 
 
-    void deleteRecipe(){
-
+    void deleteRecipe() {
         new MaterialAlertDialogBuilder(RecipeDetailActivity.this)
                 .setTitle("Delete")
-                .setMessage("Are you sure you want to Delete this recipe?")
-                .setCancelable(false) // Prevents dismissing by tapping outside
+                .setMessage("Are you sure you want to delete this recipe?")
+                .setCancelable(false)
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // Firebase Sign Out
+                    // ✅ Show progress dialog before starting Firestore operations
                     customProgressDialog.show();
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-                    db.collection("recipes")
-                            .whereEqualTo("timestamp", recipe.getTimestamp())
+                    // Step 1: Get today's date
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    String todayDate = dateFormat.format(new Date());
+
+                    // Step 2: Check if the recipe is used in any meal category
+                    db.collection("meals")
                             .get()
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        // Delete the document
-                                        db.collection("recipes").document(document.getId())
-                                                .delete()
-                                                .addOnSuccessListener(aVoid ->
-                                                        showSnackbar("Document deleted successfully!")
+                            .addOnCompleteListener(mealTask -> {
+                                if (mealTask.isSuccessful() && !mealTask.getResult().isEmpty()) {
+                                    boolean isScheduled = false;
+                                    boolean isBeforeToday = false;
 
-                                                )
-                                                .addOnFailureListener(e ->
-                                                        showSnackbar("Error deleting document: \" + e")
+                                    for (DocumentSnapshot mealDoc : mealTask.getResult()) {
+                                        String mealDate = mealDoc.getId(); // Firestore document ID is the date (YYYY-MM-DD)
 
-                                                );
+                                        List<Long> breakfast = (List<Long>) mealDoc.get("Breakfast");
+                                        List<Long> lunch = (List<Long>) mealDoc.get("Lunch");
+                                        List<Long> dinner = (List<Long>) mealDoc.get("Dinner");
+
+                                        if ((breakfast != null && breakfast.contains(recipe.getTimestamp())) ||
+                                                (lunch != null && lunch.contains(recipe.getTimestamp())) ||
+                                                (dinner != null && dinner.contains(recipe.getTimestamp()))) {
+                                            isScheduled = true;
+
+                                            // Check if meal date is before today
+                                            if (mealDate.compareTo(todayDate) < 0) {
+                                                isBeforeToday = true;
+                                            }
+                                        }
+                                    }
+
+                                    if (!isScheduled) {
+                                        // ✅ Recipe is NOT in any meals → Allow deletion
+                                        deleteRecipeFromFirestore(db);
+                                    } else if (isBeforeToday) {
+                                        // ✅ Recipe is in past meals → Allow deletion
+                                        deleteRecipeFromFirestore(db);
+                                    } else {
+                                        // ❌ Recipe is scheduled for today or later → Prevent deletion
+                                        customProgressDialog.dismiss();
+                                        showSnackbar("You cannot delete this recipe because it's scheduled in a meal plan from today onwards.");
                                     }
                                 } else {
-                                    showSnackbar("No document found with timestamp: \" + timestampToDelete");
-                                    //System.out.println("No document found with timestamp: " + timestampToDelete);
+                                    // ✅ No meals found → Allow deletion
+                                    deleteRecipeFromFirestore(db);
                                 }
+                            })
+                            .addOnFailureListener(e -> {
+                                // Handle Firestore failure
+                                customProgressDialog.dismiss();
+                                showSnackbar("Error checking meal plan: " + e.getMessage());
                             });
-                    customProgressDialog.dismiss();
-
-                    Intent intent = new Intent(this, DashboardActivity.class);
-                    intent.putExtra("FRAGMENT_INDEX", 0); // Send index for HomeFragment
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                    startActivity(intent);
-                    finish();
                 })
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss()) // Properly dismisses dialog
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
-
-
     }
+
+    // 🔥 Helper method to delete the recipe from Firestore
+    private void deleteRecipeFromFirestore(FirebaseFirestore db) {
+        db.collection("recipes")
+                .whereEqualTo("timestamp", recipe.getTimestamp())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            db.collection("recipes").document(document.getId())
+                                    .delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        showSnackbar("Recipe deleted successfully!");
+                                        customProgressDialog.dismiss(); // ✅ Dismiss only after success
+                                        navigateToDashboard();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        showSnackbar("Error deleting document: " + e.getMessage());
+                                        customProgressDialog.dismiss(); // ✅ Dismiss on failure
+                                    });
+                        }
+                    } else {
+                        showSnackbar("No document found with this timestamp.");
+                        customProgressDialog.dismiss(); // ✅ Dismiss if no document found
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    showSnackbar("Error fetching recipe for deletion: " + e.getMessage());
+                    customProgressDialog.dismiss(); // ✅ Dismiss on Firestore error
+                });
+    }
+
+    // 🔥 Helper method to navigate to the Dashboard after deletion
+    private void navigateToDashboard() {
+        Intent intent = new Intent(this, DashboardActivity.class);
+        intent.putExtra("FRAGMENT_INDEX", 0);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
 
 
     private void loadIngredients(Map<String, List<String>> ingredients) {
