@@ -49,7 +49,7 @@ public class WeeklyPlanActivity extends AppCompatActivity {
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM dd", Locale.getDefault());
             tab.setText(dateFormat.format(calendar.getTime())); // Exa
 
-            // mple: Sun, Feb 18
+
         }).attach();
 
 

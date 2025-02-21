@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    android:background="@color/background">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@color/surface">
+
+        <!-- Store Image -->
+        <ImageView
+            android:id="@+id/storeImage"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/saved_store"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Store Image"/>
+
+        <!-- Store Name -->
+        <TextView
+            android:id="@+id/storeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/storeImage"
+            android:layout_marginStart="12dp"
+            android:text="Store Name"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/primary"/>
+
+        <!-- Distance from Current Location -->
+        <TextView
+            android:id="@+id/storeDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/storeName"
+            android:layout_toEndOf="@id/storeImage"
+            android:layout_marginStart="12dp"
+            android:text="2.5 km away"
+            android:textSize="13sp"
+            android:textColor="@color/on_surface_variant"/>
+
+        <!-- Grocery Matches Title -->
+        <TextView
+            android:id="@+id/groceryMatchesTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/storeDistance"
+            android:layout_toEndOf="@id/storeImage"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:text="Grocery Matches:"
+            android:textSize="13sp"
+            android:textColor="@color/on_surface_variant"
+            android:textStyle="bold"/>
+
+        <!-- Matching Ingredients Count Badge -->
+        <TextView
+            android:id="@+id/matchingCount"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignTop="@id/groceryMatchesTitle"
+            android:layout_toEndOf="@id/groceryMatchesTitle"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/circular_badge"
+            android:gravity="center"
+            android:text="3"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="10sp" />
+
+        <!-- Grocery Matches Chips -->
+        <HorizontalScrollView
+            android:id="@+id/chipsScrollView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/groceryMatchesTitle"
+            android:layout_toEndOf="@id/storeImage"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="14dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/chipsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"/>
+        </HorizontalScrollView>
+
+        <!-- Get Directions Button -->
+        <!-- Get Directions Button -->
+        <Button
+            android:id="@+id/getDirectionsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/button_rounded"
+            android:text="Directions"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:elevation="4dp"/>
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

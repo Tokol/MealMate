@@ -235,12 +235,22 @@ public class DailyPlanFragment extends Fragment  implements MealSelectionBottomS
                         existingTimestamps = new ArrayList<>();
                     }
 
-                    // 🚨 Remove duplicates before adding
+                    // 🚨 Remove duplicates within the same category
+                    List<Long> uniqueNewTimestamps = new ArrayList<>();
                     for (Long timestamp : newTimestamps) {
                         if (!existingTimestamps.contains(timestamp)) {
-                            existingTimestamps.add(timestamp);
+                            uniqueNewTimestamps.add(timestamp);
+                        } else {
+                            // Optional: Display a message for duplicates
+                            showSnackbar("Duplicate meal not allowed in " + type);
+                            customProgressDialog.dismiss();
+                            return;
+
                         }
                     }
+
+                    // Add only unique timestamps to the existing list
+                    existingTimestamps.addAll(uniqueNewTimestamps);
 
                     mealData.put(type, existingTimestamps);
                 } else {
@@ -250,27 +260,23 @@ public class DailyPlanFragment extends Fragment  implements MealSelectionBottomS
 
                 // Update Firestore
                 mealRef.set(mealData, SetOptions.merge())
-                        .addOnSuccessListener(aVoid ->{
+                        .addOnSuccessListener(aVoid -> {
                             customProgressDialog.dismiss();
                             showSnackbar("Meals added successfully");
 
                             updateRecyclerView(getRecyclerViewForType(type), newMeals, getNoMealTextForType(type));
-
-
-                            })
-                        .addOnFailureListener(e ->{
+                        })
+                        .addOnFailureListener(e -> {
                             customProgressDialog.dismiss();
                             showSnackbar("Error adding meals");
-                           });
+                        });
             } else {
                 showSnackbar("Error retrieving document");
-
                 customProgressDialog.dismiss();
             }
         });
-
-
     }
+
 
 
     private void updateRecyclerView(RecyclerView recyclerView, List<Meal> newMeals, TextView noMealText) {

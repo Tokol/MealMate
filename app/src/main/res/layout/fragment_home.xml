@@ -37,7 +37,6 @@
             </LinearLayout>
 
             <!-- Horizontal RecyclerView for Today's Meals -->
-
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/noMealText"
                 android:layout_width="match_parent"
@@ -105,7 +104,8 @@
                     android:id="@+id/viewMapIcon"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:src="@drawable/ic_map"
+                    android:src="@drawable/ic_explore"
+                    app:tint="@color/black"
                     android:contentDescription="View Stores on Map"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/primary"
@@ -131,13 +131,16 @@
                     android:layout_height="wrap_content"/>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Spacer to push content up -->
+            <View
+                android:layout_width="10dp"
+                android:layout_height="150dp" />
         </LinearLayout>
-
     </ScrollView>
 
     <!-- Floating Action Button (FAB) for Shopping Cart -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/addStoreFab"
+        android:id="@+id/shop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_cart"
@@ -145,7 +148,6 @@
         app:backgroundTint="@color/primary"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="12dp"
-       android:elevation="55dp"
+        android:elevation="55dp"
         android:layout_marginBottom="150dp"/>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

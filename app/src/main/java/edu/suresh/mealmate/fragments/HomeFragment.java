@@ -2,93 +2,147 @@ package edu.suresh.mealmate.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import edu.suresh.mealmate.CustomProgressDialog;
+import edu.suresh.mealmate.GeoTagActivity;
+import edu.suresh.mealmate.GroceryActivity;
 import edu.suresh.mealmate.R;
 import edu.suresh.mealmate.WeeklyPlanActivity;
 import edu.suresh.mealmate.adapters.MealAdapter;
+import edu.suresh.mealmate.adapters.StoreAdapter;
 import edu.suresh.mealmate.model.Meal;
 import edu.suresh.mealmate.model.Recipe;
-
+import edu.suresh.mealmate.model.SavedLocation;
 
 public class HomeFragment extends Fragment implements MealAdapter.OnMealRemoveListener {
 
-    private RecyclerView todaysMealRecyclerView;
+    private RecyclerView todaysMealRecyclerView, favStoreRecyclerView;
     private MealAdapter mealAdapter;
     private List<Meal> mealList;
     private TextView noMealText;
     private MaterialButton viewWeeklyPlanButton;
-
-    CustomProgressDialog customProgressDialog;
+    private FloatingActionButton shop;
+    private CustomProgressDialog customProgressDialog;
 
     private int completedRequests = 0;
+    private int totalRequests = 0;
 
+    private ShapeableImageView addStore;
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Initialize RecyclerView
+        // Initialize Views
         todaysMealRecyclerView = view.findViewById(R.id.todaysMealRecyclerView);
         todaysMealRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         noMealText = view.findViewById(R.id.noMealText);
+        addStore = view.findViewById(R.id.addFavStoreIcon);
+
+        favStoreRecyclerView = view.findViewById(R.id.favStoresRecyclerView);
         viewWeeklyPlanButton = view.findViewById(R.id.viewWeeklyPlanButton);
-
+        shop = view.findViewById(R.id.shop);
         customProgressDialog = new CustomProgressDialog(getActivity());
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
 
+        favStoreRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
 
-        // Load Dummy Data
-        //loadDummyMeals();
+        loadDummyData();
         loadDataMealToday(true);
 
+        // Button Listeners
+        viewWeeklyPlanButton.setOnClickListener(v -> {
+            startActivity(new Intent(getContext(), WeeklyPlanActivity.class));
+        });
 
-        viewWeeklyPlanButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), WeeklyPlanActivity.class);
-                startActivity(intent);
-            }
+        shop.setOnClickListener(v -> {
+            startActivity(new Intent(getContext(), GroceryActivity.class));
+        });
+
+        addStore.setOnClickListener(v -> {
+            startActivity(new Intent(getContext(), GeoTagActivity.class));
+
         });
 
         return view;
     }
 
+
+
+
+
+    private void loadDummyData() {
+        List<SavedLocation> dummyData = new ArrayList<>();
+        dummyData.add(new SavedLocation(
+                "Fresh Mart",
+                "https://example.com/store1.jpg",
+                27.7172, 85.3240,
+                "2.5 km",
+                Arrays.asList("Tomatoes", "Potatoes", "Onions", "Red meat", "Eggs", "Origano", "Coconut oil", "Basil"),
+                3
+        ));
+        dummyData.add(new SavedLocation(
+                "Organic Foods",
+                "https://example.com/store2.jpg",
+                27.7150, 85.3120,
+                "3 km",
+                Arrays.asList("Carrots", "Broccoli"),
+                2
+        ));
+        dummyData.add(new SavedLocation(
+                "Super Mart",
+                "https://example.com/store3.jpg",
+                27.7180, 85.3300,
+                "1.8 km",
+                Arrays.asList("Milk", "Eggs", "Bread"),
+                1
+        ));
+
+        StoreAdapter adapter = new StoreAdapter(requireContext(), dummyData);
+        favStoreRecyclerView.setAdapter(adapter);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        loadDataMealToday(false);
+        if (mealList == null || mealList.isEmpty()) {
+            loadDataMealToday(false);
+        }
     }
 
     private void loadDataMealToday(boolean showLoad) {
-        if(showLoad){
+        completedRequests = 0;
+        totalRequests = 0;
+
+        if (showLoad) {
             customProgressDialog.show();
         }
-        // Step 1: Get today's date in "YYYY-MM-DD" format
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String todayDate = dateFormat.format(new Date());
 
@@ -98,96 +152,53 @@ public class HomeFragment extends Fragment implements MealAdapter.OnMealRemoveLi
         mealRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
-
-
-                Log.d("Documents", document.toString());
-                if (document.exists()) {
+                if (document != null && document.exists()) {
                     List<Long> breakfastTimestamps = (List<Long>) document.get("Breakfast");
                     List<Long> lunchTimestamps = (List<Long>) document.get("Lunch");
                     List<Long> dinnerTimestamps = (List<Long>) document.get("Dinner");
 
-                    // ✅ Ensure Lists Are Not Null (Prevents Skipping)
                     if (breakfastTimestamps == null) breakfastTimestamps = new ArrayList<>();
                     if (lunchTimestamps == null) lunchTimestamps = new ArrayList<>();
                     if (dinnerTimestamps == null) dinnerTimestamps = new ArrayList<>();
 
-                    // ✅ Create a combined list of meals
+                    totalRequests = breakfastTimestamps.size() + lunchTimestamps.size() + dinnerTimestamps.size();
                     List<Meal> allMeals = new ArrayList<>();
 
-                    Log.d("Firestore", "Breakfast Timestamps: " + breakfastTimestamps);
-                    Log.d("Firestore", "Lunch Timestamps: " + lunchTimestamps);
-                    Log.d("Firestore", "Dinner Timestamps: " + dinnerTimestamps);
-
-                    // ✅ Fetch All Meals & Ensure RecyclerView Updates After All Requests Finish
                     fetchAllMeals(breakfastTimestamps, lunchTimestamps, dinnerTimestamps, allMeals);
                 } else {
-                    Log.d("Firestore", "No meal plan found for today: " + todayDate);
-                    updateMealRecyclerView(new ArrayList<>()); // Clear RecyclerView if no meals
-                    if (showLoad){
-                        customProgressDialog.dismiss();
-                    }
+                    updateMealRecyclerView(new ArrayList<>());
+                    if (showLoad) customProgressDialog.dismiss();
                 }
             } else {
-                Log.e("Firestore", "Failed to load meals", task.getException());
-                if (showLoad){
-                    customProgressDialog.dismiss();
-                }
+                if (showLoad) customProgressDialog.dismiss();
             }
         });
     }
+
     private void fetchAllMeals(List<Long> breakfastTimestamps, List<Long> lunchTimestamps,
                                List<Long> dinnerTimestamps, List<Meal> allMeals) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        int totalRequests = breakfastTimestamps.size() + lunchTimestamps.size() + dinnerTimestamps.size();
 
-        Log.d("fetchedDataSize", totalRequests+"");
         if (totalRequests == 0) {
-            updateMealRecyclerView(new ArrayList<>()); // ✅ No meals, clear RecyclerView
+            updateMealRecyclerView(new ArrayList<>());
             customProgressDialog.dismiss();
             return;
         }
 
-
-
-
-        // ✅ Fetch all recipes & update list dynamically
         for (Long timestamp : breakfastTimestamps) {
-            fetchRecipeByTimestamp(db, timestamp, "Breakfast", allMeals, totalRequests);
+            fetchRecipeByTimestamp(db, timestamp, "Breakfast", allMeals);
         }
         for (Long timestamp : lunchTimestamps) {
-            fetchRecipeByTimestamp(db, timestamp, "Lunch", allMeals, totalRequests);
+            fetchRecipeByTimestamp(db, timestamp, "Lunch", allMeals);
         }
         for (Long timestamp : dinnerTimestamps) {
-            fetchRecipeByTimestamp(db, timestamp, "Dinner", allMeals, totalRequests);
+            fetchRecipeByTimestamp(db, timestamp, "Dinner", allMeals);
         }
     }
 
-
-//    private void fetchRecipeByTimestamp(FirebaseFirestore db, Long timestamp, String mealType,
-//                                        List<Meal> allMeals, int totalRequests) {
-//        db.collection("recipes").document(String.valueOf(timestamp))
-//                .get()
-//                .addOnSuccessListener(documentSnapshot -> {
-//                    if (documentSnapshot.exists()) {
-//                        Recipe recipe = documentSnapshot.toObject(Recipe.class);
-//                        if (recipe != null) {
-//                            allMeals.add(new Meal(recipe, mealType)); // ✅ Add to combined list
-//                        }
-//                    }
-//                    checkAndUpdateRecyclerView(allMeals, totalRequests);
-//                })
-//                .addOnFailureListener(e -> {
-//                    Log.e("Firestore", "Error fetching recipe", e);
-//                    checkAndUpdateRecyclerView(allMeals, totalRequests);
-//                });
-//    }
-
-    private void fetchRecipeByTimestamp(FirebaseFirestore db, Long timestamp, String mealType,
-                                        List<Meal> allMeals, int totalRequests) {
-        Log.d("Firestore", "Querying recipe where timestamp = " + timestamp);
-
+    private void fetchRecipeByTimestamp(FirebaseFirestore db, Long timestamp, String mealType, List<Meal> allMeals) {
         db.collection("recipes")
-                .whereEqualTo("timestamp", timestamp)  // ✅ Query by field instead of document ID
+                .whereEqualTo("timestamp", timestamp)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
@@ -195,111 +206,37 @@ public class HomeFragment extends Fragment implements MealAdapter.OnMealRemoveLi
                             Recipe recipe = document.toObject(Recipe.class);
                             if (recipe != null) {
                                 allMeals.add(new Meal(recipe, mealType));
-                                Log.d("Firestore", "Added recipe: " + recipe.getRecipeName());
                             }
                         }
-                    } else {
-                        Log.e("Firestore", "No recipe found with timestamp: " + timestamp);
                     }
-                    checkAndUpdateRecyclerView(allMeals, totalRequests);
+                    checkAndUpdateRecyclerView(allMeals);
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Error fetching recipe", e);
-                    checkAndUpdateRecyclerView(allMeals, totalRequests);
-                });
+                .addOnFailureListener(e -> checkAndUpdateRecyclerView(allMeals));
     }
 
-    private void checkAndUpdateRecyclerView(List<Meal> allMeals, int totalRequests) {
+    private void checkAndUpdateRecyclerView(List<Meal> allMeals) {
         completedRequests++;
-
-        if (completedRequests == totalRequests) { // ✅ Ensure all requests finish before updating UI
+        if (completedRequests == totalRequests) {
             updateMealRecyclerView(allMeals);
             customProgressDialog.dismiss();
         }
     }
 
-
-
-    private void fetchRecipes(List<Long> timestamps, String mealType, List<Meal> allAvilableMeals) {
-        if (timestamps == null || timestamps.isEmpty()) {
-            Log.d("Firestore", mealType + " has no meals today.");
-            updateMealRecyclerView(allAvilableMeals);  // Ensure UI updates even if empty
-            return;
-        }
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-            customProgressDialog.show();
-        for (Long timestamp : timestamps) {
-            db.collection("recipes").document(String.valueOf(timestamp))
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            Recipe recipe = documentSnapshot.toObject(Recipe.class); // ✅ Corrected
-                            if (recipe != null) {
-                                allAvilableMeals.add(new Meal(recipe, mealType)); // ✅ Fixed
-
-                                Log.d("Recipe Fetch", "Loaded recipe: " + recipe.getRecipeName());
-
-                                // ✅ Update RecyclerView after adding a meal
-                                customProgressDialog.dismiss();
-                                updateMealRecyclerView(allAvilableMeals);
-                            }
-                        }
-                    })
-                    .addOnFailureListener(e -> {Log.e("Firestore", "Error fetching recipe", e);});
-        }
-
-
-
-    }
-
-
-
     private void updateMealRecyclerView(List<Meal> allMeals) {
-        Log.d("mealUpdate", "Updating RecyclerView with " + allMeals.size() + " meals.");
-        Log.d("RecyclerView Update", "Updating RecyclerView with " + allMeals.size() + " meals.");
-
         boolean hasMeals = !allMeals.isEmpty();
         noMealText.setVisibility(hasMeals ? View.GONE : View.VISIBLE);
         todaysMealRecyclerView.setVisibility(hasMeals ? View.VISIBLE : View.GONE);
 
         if (hasMeals) {
-            todaysMealRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-
-            MealAdapter mealAdapter = new MealAdapter(getContext(), allMeals, false, this);
+            mealAdapter = new MealAdapter(requireContext(), allMeals, false, this);
             todaysMealRecyclerView.setAdapter(mealAdapter);
-
-            // ✅ Ensure RecyclerView updates
-            mealAdapter.notifyDataSetChanged();
-            todaysMealRecyclerView.setHasFixedSize(false); // 🔥 Prevent UI issues when size changes
         } else {
-            Log.e("RecyclerView", "No meals found, clearing RecyclerView.");
-            todaysMealRecyclerView.setAdapter(null); // ✅ Clear adapter when empty
+            todaysMealRecyclerView.setAdapter(null);
         }
     }
 
     @Override
     public void onMealRemove(Meal meal, int position) {
-        //NOTHING TO DO
+        // Implement meal removal logic if needed
     }
-
-
-//    private void loadDummyMeals() {
-//        mealList = new ArrayList<>();
-//         mealList.add(new Meal("Thakali khana", R.drawable.thakali, "Breakfast"));
-//         mealList.add(new Meal("MoMo", R.drawable.momo, "Lunch"));
-//         mealList.add(new Meal("Pani Puri", R.drawable.panipuri, "Dinner"));
-//
-//        if (mealList.isEmpty()) {
-//            noMealText.setVisibility(View.VISIBLE); // Show "No Meal Plan for Today"
-//            todaysMealRecyclerView.setVisibility(View.GONE); // Hide RecyclerView
-//        } else {
-//            noMealText.setVisibility(View.GONE); // Hide "No Meal Plan" Text
-//            todaysMealRecyclerView.setVisibility(View.VISIBLE); // Show RecyclerView
-//            mealAdapter = new MealAdapter(getContext(), mealList,false);
-//            todaysMealRecyclerView.setAdapter(mealAdapter);
-//        }
-//        mealAdapter = new MealAdapter(getContext(), mealList,false);
-//        todaysMealRecyclerView.setAdapter(mealAdapter);
-//    }
 }

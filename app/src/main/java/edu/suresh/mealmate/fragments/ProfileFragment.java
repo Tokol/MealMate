@@ -29,7 +29,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import edu.suresh.mealmate.EditProfileFromDashboard;
 import edu.suresh.mealmate.R;
@@ -38,6 +43,7 @@ import edu.suresh.mealmate.home.MainActivity;
 import edu.suresh.mealmate.model.Recipe;
 import edu.suresh.mealmate.utils.AgeCalculate;
 import edu.suresh.mealmate.utils.FirestoreHelper;
+import edu.suresh.mealmate.utils.GroceryDatabaseHelper;
 
 public class ProfileFragment extends Fragment {
 
@@ -50,6 +56,8 @@ public class ProfileFragment extends Fragment {
     RecyclerView recyclerView;
 
     private TextView recipeCount, groceryCount, MealCount;
+    private GroceryDatabaseHelper groceryDatabaseHelper;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -64,6 +72,7 @@ public class ProfileFragment extends Fragment {
         tvMobileNumber = rootView.findViewById(R.id.tvMobileNumber);
         ageTv = rootView.findViewById(R.id.tvAge);
         db = FirebaseFirestore.getInstance();
+        groceryDatabaseHelper = new GroceryDatabaseHelper(getContext());
 
         recipeCount = rootView.findViewById(R.id.tvRecipes);
         groceryCount = rootView.findViewById(R.id.tvShoppingLists);
@@ -114,8 +123,67 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+
+        loadGroceryCount();
+        mealCounter();
+
         return rootView;
     }
+
+
+
+    private void loadGroceryCount() {
+        // Get total count from database
+        int totalGroceryCount = groceryDatabaseHelper.getWeeklyGroceryItemCount();
+
+        // Update the UI
+        groceryCount.setText(String.valueOf(totalGroceryCount));
+    }
+
+
+    void mealCounter() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        List<String> datesToFetch = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
+
+        // Get Dates from Today to Next 7 Days
+        for (int i = 0; i <= 6; i++) {
+            datesToFetch.add(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime()));
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        // Initialize total count and completion counter
+        final int[] totalCount = {0};
+        final int[] completedCount = {0};
+
+        // Loop Through Dates and Fetch Data
+        for (String date : datesToFetch) {
+            db.collection("meals").document(date).get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    Map<String, Object> mealData = documentSnapshot.getData();
+                    if (mealData != null) {
+                        for (String mealType : mealData.keySet()) {
+                            List<Object> timestamps = (List<Object>) mealData.get(mealType);
+                            if (timestamps != null) {
+                                totalCount[0] += timestamps.size(); // Count timestamps
+                            }
+                        }
+                    }
+                }
+            }).addOnFailureListener(e -> {
+                showSnackbar("Failed to fetch meal plan for date: " + date);
+            }).addOnCompleteListener(task -> {
+                completedCount[0]++;
+                // When all dates are fetched, update UI
+                if (completedCount[0] == datesToFetch.size()) {
+                    MealCount.setText(String.valueOf(totalCount[0]));
+                    Log.d(TAG, "Total meal count: " + totalCount[0]);
+                }
+            });
+        }
+    }
+
+
 
     private void openEditProfile() {
         Intent intent = new Intent(getActivity(), EditProfileFromDashboard.class);
@@ -155,6 +223,9 @@ public class ProfileFragment extends Fragment {
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss()) // Properly dismisses dialog
                 .show();
     }
+
+
+
 
     private void loadUserData() {
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
@@ -225,6 +296,9 @@ public class ProfileFragment extends Fragment {
                 showSnackbar("User data not found on Firebase");
             }
         }).addOnFailureListener(e -> showSnackbar("Failed to load data from Firebase: " + e.getMessage()));
+
+
+
     }
 
 

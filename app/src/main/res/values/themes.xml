@@ -24,8 +24,7 @@
 
 
 
-
-
+            
         <!-- Default Font (Roboto for Normal Text) -->
         <item name="android:fontFamily">@font/roboto_regular</item>
     </style>
