@@ -44,9 +44,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import edu.suresh.mealmate.CustomProgressDialog;
 import edu.suresh.mealmate.GeoTagActivity;
@@ -179,12 +181,18 @@ public class HomeFragment extends Fragment implements MealAdapter.OnMealRemoveLi
 
         // Fetch Unpurchased Grocery Items for the Week
         Map<String, Map<String, List<String>>> weeklyGroceryMap = groceryDbHelper.getGroceryItemsForWeekUnpurchased();
-        List<String> groceryItems = new ArrayList<>();
+        // Use a Set to ensure uniqueness
+        Set<String> uniqueGroceryItems = new HashSet<>();
+
         for (Map<String, List<String>> categoryMap : weeklyGroceryMap.values()) {
             for (List<String> items : categoryMap.values()) {
-                groceryItems.addAll(items);
+                uniqueGroceryItems.addAll(items); // Set automatically handles duplicates
             }
         }
+
+// Convert the Set back to a List for further processing
+        List<String> groceryItems = new ArrayList<>(uniqueGroceryItems);
+
 
         // Get Current Location
         if (checkLocationPermission()) {
