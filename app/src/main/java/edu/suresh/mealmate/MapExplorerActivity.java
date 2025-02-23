@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +105,7 @@ public class MapExplorerActivity extends AppCompatActivity implements OnMapReady
             for (SavedLocation store : storeList) {
                 LatLng position = new LatLng(store.getLatitude(), store.getLongitude());
                 String title = store.getName();
-                String snippet = "Address: " + store.getAddress();
+                String snippet = store.getDistance() + " away";
 
                 Marker marker = mMap.addMarker(new MarkerOptions().position(position).title(title).snippet(snippet));
                 marker.setTag(store.getImageUrl()); // Set image URL as tag
@@ -127,6 +128,8 @@ public class MapExplorerActivity extends AppCompatActivity implements OnMapReady
                 // Include current location in the polygon
                 markerPositions.add(currentLocation);
                 boundsBuilder.include(currentLocation);
+                drawNavigationLines(currentLocation);
+
 
                 // Adjust camera to fit all markers
                 LatLngBounds bounds = boundsBuilder.build();
@@ -134,7 +137,7 @@ public class MapExplorerActivity extends AppCompatActivity implements OnMapReady
                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
 
                 // Draw the polygon connecting all markers
-                drawPolygonBetweenMarkers(markerPositions, currentLocation);
+               // drawPolygonBetweenMarkers(markerPositions, currentLocation);
 
             }
         });
@@ -147,7 +150,7 @@ public class MapExplorerActivity extends AppCompatActivity implements OnMapReady
 
             markerInfoCard.setVisibility(View.VISIBLE);
             infoTitle.setText(marker.getTitle());
-            infoAddress.setText(marker.getSnippet());
+
 
             // Load store image using Glide
             String imageUrl = (String) marker.getTag();
@@ -165,6 +168,7 @@ public class MapExplorerActivity extends AppCompatActivity implements OnMapReady
                     displayIngredientsInGrid(store);
                     int matchedCount = store.getMatchingCount();
                     infoMatches.setText(matchedCount + " items match with Grocery List");
+                    infoAddress.setText(store.getAddress());
                     break;
                 }
             }
@@ -175,22 +179,21 @@ public class MapExplorerActivity extends AppCompatActivity implements OnMapReady
         mMap.setOnMapClickListener(latLng -> markerInfoCard.setVisibility(View.GONE));
     }
 
-    private void drawPolygonBetweenMarkers(List<LatLng> positions, LatLng currentLocation) {
-        if (positions == null || positions.isEmpty()) return;
+    private void drawNavigationLines(LatLng currentLocation) {
+        if (storeList == null || storeList.isEmpty()) return;
 
-        // Exclude current location from the polygon
-        List<LatLng> polygonPositions = new ArrayList<>(positions);
-        polygonPositions.remove(currentLocation);
+        for (SavedLocation store : storeList) {
+            LatLng storePosition = new LatLng(store.getLatitude(), store.getLongitude());
 
-        PolygonOptions polygonOptions = new PolygonOptions()
-                .addAll(polygonPositions)
-                .strokeColor(ContextCompat.getColor(this, R.color.primary))
-                .strokeWidth(4f)
-                .fillColor(0x220000FF);  // Light semi-transparent blue
-
-        polygonOptions.add(polygonPositions.get(0)); // Close the loop
-        mMap.addPolygon(polygonOptions);
+            // Draw polyline from current location to each store
+            mMap.addPolyline(new PolylineOptions()
+                    .add(currentLocation, storePosition)
+                    .width(8)
+                    .color(ContextCompat.getColor(this, R.color.primary))
+                    .geodesic(true)); // Makes the line follow the Earth's curvature
+        }
     }
+
 
 
     private BitmapDescriptor resizeMarkerIcon(int drawableResId, int width, int height) {
