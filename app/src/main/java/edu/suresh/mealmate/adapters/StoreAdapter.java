@@ -7,17 +7,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.GridLayout;
+import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.cardview.widget.CardView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
-
 import java.util.List;
-
 import edu.suresh.mealmate.R;
 import edu.suresh.mealmate.model.SavedLocation;
 
@@ -42,35 +42,16 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
     public void onBindViewHolder(@NonNull StoreViewHolder holder, int position) {
         SavedLocation store = storeList.get(position);
 
-        // Store Name and Distance
+        // Store Name, Address, and Distance
         holder.storeName.setText(store.getName());
         holder.storeDistance.setText(store.getDistance() + " away");
+        holder.storeAddress.setText(store.getAddress());
+
 
         // Display Matching Count Badge
         int matchingCount = store.getMatchingCount();
-        if (matchingCount > 0) {
-            holder.matchingCount.setVisibility(View.VISIBLE);
-            holder.matchingCount.setText(String.valueOf(matchingCount));
-        } else {
-            holder.matchingCount.setVisibility(View.GONE);
-        }
+        holder.matchingCount.setText(String.valueOf(matchingCount));
 
-        // Display Available Ingredients as Chips
-        holder.chipsContainer.removeAllViews();
-        List<String> ingredients = store.getAvailableIngredients();
-        for (String ingredient : ingredients) {
-            TextView chip = new TextView(context);
-            chip.setText(ingredient);
-            chip.setBackground(context.getDrawable(R.drawable.chip_background));
-            chip.setPadding(24, 12, 24, 12);
-            chip.setTextColor(context.getColor(R.color.on_surface));
-            chip.setTextSize(12);
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            layoutParams.setMargins(8, 0, 8, 0);
-            chip.setLayoutParams(layoutParams);
-            holder.chipsContainer.addView(chip);
-        }
 
         // Load Image using Glide
         Glide.with(context)
@@ -78,12 +59,69 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
                 .placeholder(R.drawable.saved_store)
                 .into(holder.storeImage);
 
+        // Display Available Ingredients as Grid
+        holder.gridContainer.removeAllViews(); // Clear previous views
+        List<String> ingredients = store.getAvailableIngredients();
+        List<String> matchedIngredients = store.getMatchedIngredients(); // Get matched list
+
+        for (String ingredient : ingredients) {
+            TextView chip = new TextView(context);
+            chip.setText(ingredient);
+            chip.setPadding(24, 12, 24, 12);
+            chip.setTextSize(12);
+
+            // Check if the ingredient is in the matched list
+            if (matchedIngredients != null && matchedIngredients.contains(ingredient)) {
+                chip.setBackground(context.getDrawable(R.drawable.chip_avilable)); // Matched -> Green
+                chip.setTextColor(context.getColor(R.color.white));
+            } else {
+
+                chip.setBackground(context.getDrawable(R.drawable.chip_background));
+                chip.setTextColor(context.getColor(R.color.on_surface));
+            }
+
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            params.setMargins(8, 8, 8, 8);
+            chip.setLayoutParams(params);
+
+            holder.gridContainer.addView(chip);
+        }
+
+        // Set initial state of ingredients grid and icon
+        holder.gridContainer.setVisibility(View.GONE);
+        holder.expandIcon.setRotation(0f);
+
+        // Toggle the grid visibility on clicking the ingredients card
+        holder.ingredientsCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (holder.gridContainer.getVisibility() == View.GONE) {
+                    holder.gridContainer.setVisibility(View.VISIBLE);
+                    holder.expandIcon.setRotation(180f);
+                } else {
+                    holder.gridContainer.setVisibility(View.GONE);
+                    holder.expandIcon.setRotation(0f);
+                }
+            }
+        });
+
         // Handle Get Directions Button
         holder.getDirectionsButton.setOnClickListener(v -> {
-            String geoUri = "google.navigation:q=" + store.getLatitude() + "," + store.getLongitude();
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
+            String uri = "google.navigation:q=" + store.getLatitude() + "," + store.getLongitude() + "&mode=d";
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
             intent.setPackage("com.google.android.apps.maps");
-            context.startActivity(intent);
+
+            // Check if Google Maps is installed to handle the intent
+            if (intent.resolveActivity(context.getPackageManager()) != null) {
+                context.startActivity(intent);
+            } else {
+                String webUri = "https://www.google.com/maps/dir/?api=1&destination="
+                        + store.getLatitude() + "," + store.getLongitude() + "&travelmode=driving";
+                Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUri));
+                context.startActivity(webIntent);    }
+
+
+
         });
     }
 
@@ -93,19 +131,24 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
     }
 
     public static class StoreViewHolder extends RecyclerView.ViewHolder {
-        ImageView storeImage;
-        TextView storeName, storeDistance, matchingCount;
-        LinearLayout chipsContainer;
+        ImageView storeImage, expandIcon;
+        TextView storeName, storeDistance, matchingCount, storeAddress;
+        GridLayout gridContainer;
         Button getDirectionsButton;
+        CardView ingredientsCard;
 
         public StoreViewHolder(@NonNull View itemView) {
             super(itemView);
             storeImage = itemView.findViewById(R.id.storeImage);
             storeName = itemView.findViewById(R.id.storeName);
+            storeAddress = itemView.findViewById(R.id.storeAddress);
             storeDistance = itemView.findViewById(R.id.storeDistance);
             matchingCount = itemView.findViewById(R.id.matchingCount);
-            chipsContainer = itemView.findViewById(R.id.chipsContainer);
+            gridContainer = itemView.findViewById(R.id.ingredientsGrid);
             getDirectionsButton = itemView.findViewById(R.id.getDirectionsButton);
+            // New views for collapsible ingredients section
+            ingredientsCard = itemView.findViewById(R.id.ingredientsCard);
+            expandIcon = itemView.findViewById(R.id.expandIcon);
         }
     }
 }

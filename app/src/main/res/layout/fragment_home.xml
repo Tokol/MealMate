@@ -77,13 +77,32 @@
                 android:paddingTop="24dp">
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Favorite Stores"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_surface"
-                    android:layout_weight="1" />
+                    android:layout_marginEnd="4dp" />
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/filterStoresIcon"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_filter"
+                    app:tint="@color/black"
+                    android:contentDescription="Filter Stores"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/primary"
+                    android:background="?attr/selectableItemBackground"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
 
                 <!-- Add Favorite Store Icon -->
                 <com.google.android.material.imageview.ShapeableImageView

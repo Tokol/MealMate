@@ -198,6 +198,56 @@ public class GroceryDatabaseHelper extends SQLiteOpenHelper {
         return weeklyGroceryMap;
     }
 
+
+
+    public Map<String, Map<String, List<String>>> getGroceryItemsForWeekUnpurchased() {
+        Map<String, Map<String, List<String>>> weeklyGroceryMap = new HashMap<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Get today's date
+        String todayDate = getTodayDate();
+
+        // Get the date 7 days from today
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, 7);
+        String endDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+
+        // Query for unpurchased items between today and the next 7 days
+        String query = "SELECT " + COLUMN_NAME + ", " + COLUMN_CATEGORY + ", " + COLUMN_DATE +
+                " FROM " + TABLE_GROCERY +
+                " WHERE " + COLUMN_DATE + " BETWEEN ? AND ? " +
+                " AND " + COLUMN_IS_PURCHASED + " = 0" +   // Only Unpurchased Items
+                " ORDER BY " + COLUMN_DATE + " ASC";
+
+        Cursor cursor = db.rawQuery(query, new String[]{todayDate, endDate});
+
+        if (cursor.moveToFirst()) {
+            do {
+                String itemName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME));
+                String category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY));
+                String date = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE));
+
+                // Group by Category then by Date
+                if (!weeklyGroceryMap.containsKey(category)) {
+                    weeklyGroceryMap.put(category, new HashMap<>());
+                }
+                Map<String, List<String>> dateMap = weeklyGroceryMap.get(category);
+
+                // Group by Date under the same Category
+                if (!dateMap.containsKey(date)) {
+                    dateMap.put(date, new ArrayList<>());
+                }
+                dateMap.get(date).add(itemName);
+
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return weeklyGroceryMap;
+    }
+
+
     public void removeGroceryItem(String itemName, String date) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_GROCERY, COLUMN_NAME + "=? AND " + COLUMN_DATE + "=?", new String[]{itemName, date});
