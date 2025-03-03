@@ -19,7 +19,6 @@ public class DashboardActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
     private FloatingActionButton fab;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

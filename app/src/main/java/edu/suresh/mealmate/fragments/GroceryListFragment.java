@@ -2,6 +2,7 @@ package edu.suresh.mealmate.fragments;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import edu.suresh.mealmate.CustomProgressDialog;
+import edu.suresh.mealmate.DelegateActivity;
 import edu.suresh.mealmate.GroceryActivity;
 import edu.suresh.mealmate.R;
 import edu.suresh.mealmate.adapters.GroceryAdapter;
@@ -54,6 +56,10 @@ public class GroceryListFragment extends Fragment {
     private MaterialTextView labelAddItem, labelImportItems;
     private GroceryDatabaseHelper dbHelper;
     private String selectedTab = "Today"; // Default to "Today"
+
+    private FloatingActionButton fabDelegateShopping;
+    private MaterialTextView labelDelegateShopping;
+
 
 
     CustomProgressDialog customProgressDialog;
@@ -104,6 +110,9 @@ public class GroceryListFragment extends Fragment {
         fabImportItems = view.findViewById(R.id.fab_import_items);
         labelAddItem = view.findViewById(R.id.label_add_item);
         labelImportItems = view.findViewById(R.id.label_import_items);
+        fabDelegateShopping = view.findViewById(R.id.fab_delegate_shopping);
+        labelDelegateShopping = view.findViewById(R.id.label_delegate_shopping);
+
 
         fabOpen = AnimationUtils.loadAnimation(getContext(), R.anim.fab_open);
         fabClose = AnimationUtils.loadAnimation(getContext(), R.anim.fab_close);
@@ -121,6 +130,19 @@ public class GroceryListFragment extends Fragment {
         });
         fabImportItems.setOnClickListener(v -> {toggleFabMenu();
             showImportConfirmationDialog();
+        });
+
+        fabDelegateShopping.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               if( dbHelper.hasGroceryDataForWeek()){
+                Intent intent = new Intent(getActivity(), DelegateActivity.class );
+                startActivity(intent);
+               }
+               else {
+                   showSnackbar("No Grocery Items are available to delegate");
+               }
+            }
         });
 
         TabLayout tabLayout = requireActivity().findViewById(R.id.tabLayout);
@@ -317,28 +339,43 @@ public class GroceryListFragment extends Fragment {
 
     private void toggleFabMenu() {
         if (isFabOpen) {
+            // Close Animations
             fabAddItem.startAnimation(fabClose);
             fabImportItems.startAnimation(fabClose);
+            fabDelegateShopping.startAnimation(fabClose); // New FAB
             labelAddItem.startAnimation(fabClose);
             labelImportItems.startAnimation(fabClose);
+            labelDelegateShopping.startAnimation(fabClose); // New Label
+
             fabAddItem.setVisibility(View.GONE);
             fabImportItems.setVisibility(View.GONE);
+            fabDelegateShopping.setVisibility(View.GONE); // New FAB
             labelAddItem.setVisibility(View.GONE);
             labelImportItems.setVisibility(View.GONE);
+            labelDelegateShopping.setVisibility(View.GONE); // New Label
+
             fabMain.startAnimation(rotateBackward);
         } else {
+            // Open Animations
             fabAddItem.setVisibility(View.VISIBLE);
             fabImportItems.setVisibility(View.VISIBLE);
+            fabDelegateShopping.setVisibility(View.VISIBLE); // New FAB
             labelAddItem.setVisibility(View.VISIBLE);
             labelImportItems.setVisibility(View.VISIBLE);
-            fabMain.startAnimation(rotateForward);
+            labelDelegateShopping.setVisibility(View.VISIBLE); // New Label
+
             fabAddItem.startAnimation(fabOpen);
             fabImportItems.startAnimation(fabOpen);
+            fabDelegateShopping.startAnimation(fabOpen); // New FAB
             labelAddItem.startAnimation(fabOpen);
             labelImportItems.startAnimation(fabOpen);
+            labelDelegateShopping.startAnimation(fabOpen); // New Label
+
+            fabMain.startAnimation(rotateForward);
         }
         isFabOpen = !isFabOpen;
     }
+
 
     private void loadData(String date, String selectedTab) {
         int totalItems = 0;

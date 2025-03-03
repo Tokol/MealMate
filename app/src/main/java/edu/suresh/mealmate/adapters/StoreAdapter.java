@@ -24,7 +24,7 @@ import edu.suresh.mealmate.model.SavedLocation;
 public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHolder> {
 
     private final Context context;
-    private final List<SavedLocation> storeList;
+    private  List<SavedLocation> storeList;
 
     public StoreAdapter(Context context, List<SavedLocation> storeList) {
         this.context = context;
@@ -128,6 +128,11 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
     @Override
     public int getItemCount() {
         return storeList.size();
+    }
+
+    public void updateList(List<SavedLocation> filteredList) {
+        storeList = filteredList;  // Update the internal list
+        notifyDataSetChanged();    // Notify RecyclerView to refresh
     }
 
     public static class StoreViewHolder extends RecyclerView.ViewHolder {

@@ -23,11 +23,11 @@
         <item name="android:navigationBarColor">@color/surface</item>
 
 
-
             
         <!-- Default Font (Roboto for Normal Text) -->
         <item name="android:fontFamily">@font/roboto_regular</item>
     </style>
+
 
     <!-- Headings (Bold - Montserrat) -->
     <style name="TextAppearance.Heading" parent="TextAppearance.Material3.DisplayLarge">
@@ -38,6 +38,15 @@
     <style name="TextAppearance.Tertiary" parent="TextAppearance.Material3.BodySmall">
         <item name="android:fontFamily">@font/poppins_light</item>
     </style>
+
+    <style name="FullScreenModalStyle" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="behavior_hideable">false</item>
+        <item name="behavior_peekHeight">0dp</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
 
 
     <style name="GenderHintStyle" parent="TextAppearance.MaterialComponents.Body1">

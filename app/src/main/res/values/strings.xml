@@ -57,4 +57,32 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
 
+    <string name="delegate_title">Delegate Shopping</string>
+    <string name="select_meal">Select Meals</string>
+    <string name="ingredients_list">Ingredients List</string>
+    <string name="type_store_name">Type Store Name</string>
+    <string name="select_remote_store">Select Remote Store</string>
+    <string name="select_contacts">Select Contacts</string>
+    <string name="delegate">Delegate</string>
+
+    <string name="sms_message">Will you pick these items for me?</string>
+    <string name="total_price">Total Price:</string>
+    <string name="location">Location:</string>
+    <string name="unpurchased">Unpurchased</string>
+    <string name="purchased">Purchased</string>
+    <string name="ignore">Ignore</string>
+
+    <!-- Errors and Validations -->
+    <string name="error_no_meal_selected">Please select at least one meal category.</string>
+    <string name="error_no_ingredient_selected">Please select at least one ingredient.</string>
+    <string name="error_no_contact_selected">Please select at least one contact.</string>
+    <string name="error_invalid_price">Please enter a valid price.</string>
+    <string name="error_no_store">Please enter or select a store.</string>
+
+    <string name="breakfast">Breakfast</string>
+    <string name="lunch">Lunch</string>
+    <string name="dinner">Dinner</string>
+    <string name="price">Price (NPR)</string>
+
+
 </resources>

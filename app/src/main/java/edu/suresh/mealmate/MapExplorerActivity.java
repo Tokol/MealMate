@@ -167,7 +167,18 @@ public class MapExplorerActivity extends AppCompatActivity implements OnMapReady
                 if (store.getName().equals(marker.getTitle())) {
                     displayIngredientsInGrid(store);
                     int matchedCount = store.getMatchingCount();
-                    infoMatches.setText(matchedCount + " items match with Grocery List");
+                    if(matchedCount==0){
+                        infoMatches.setText("There are no items on the grocery list that match");
+
+                    }
+                    else if(matchedCount==1){
+                        infoMatches.setText(matchedCount + " item match with Grocery List");
+
+                    }
+                    else {
+                        infoMatches.setText(matchedCount + " items match with Grocery List");
+
+                    }
                     infoAddress.setText(store.getAddress());
                     break;
                 }

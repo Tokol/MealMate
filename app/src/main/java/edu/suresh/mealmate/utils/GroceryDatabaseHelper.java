@@ -167,7 +167,8 @@ public class GroceryDatabaseHelper extends SQLiteOpenHelper {
         String endDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
 
         // Query for items between today and the next 7 days
-        String query = "SELECT " + COLUMN_NAME + ", " + COLUMN_CATEGORY + ", " + COLUMN_DATE + " FROM " + TABLE_GROCERY +
+        String query = "SELECT " + COLUMN_NAME + ", " + COLUMN_CATEGORY + ", " + COLUMN_DATE + ", " + COLUMN_IS_PURCHASED +
+                " FROM " + TABLE_GROCERY +
                 " WHERE " + COLUMN_DATE + " BETWEEN ? AND ? ORDER BY " + COLUMN_DATE + " ASC";
 
         Cursor cursor = db.rawQuery(query, new String[]{todayDate, endDate});
@@ -177,6 +178,10 @@ public class GroceryDatabaseHelper extends SQLiteOpenHelper {
                 String itemName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME));
                 String category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY));
                 String date = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE));
+                boolean isPurchased = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_PURCHASED)) == 1;
+
+                // Log the data for debugging
+                System.out.println("Category: " + category + ", Item: " + itemName + ", Date: " + date + ", Purchased: " + isPurchased);
 
                 // Group by Category then by Date
                 if (!weeklyGroceryMap.containsKey(category)) {
@@ -188,8 +193,7 @@ public class GroceryDatabaseHelper extends SQLiteOpenHelper {
                 if (!dateMap.containsKey(date)) {
                     dateMap.put(date, new ArrayList<>());
                 }
-                dateMap.get(date).add(itemName);
-
+                dateMap.get(date).add(itemName + "|" + isPurchased); // Append purchased status to the item name
             } while (cursor.moveToNext());
         }
 
@@ -286,6 +290,33 @@ public class GroceryDatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return totalCount;
+    }
+
+
+    public boolean hasGroceryDataForWeek() {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Get today's date
+        String todayDate = getTodayDate();
+
+        // Get the date 7 days from today
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, 7);
+        String endDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+
+        // Query to check if there is any data between today and the next 7 days
+        String query = "SELECT COUNT(*) FROM " + TABLE_GROCERY +
+                " WHERE " + COLUMN_DATE + " BETWEEN ? AND ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{todayDate, endDate});
+
+        boolean hasData = false;
+        if (cursor.moveToFirst()) {
+            hasData = cursor.getInt(0) > 0;
+        }
+        cursor.close();
+        db.close();
+        return hasData;
     }
 
 

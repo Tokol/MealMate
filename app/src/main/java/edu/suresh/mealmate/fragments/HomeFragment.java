@@ -431,6 +431,8 @@ public class HomeFragment extends Fragment implements MealAdapter.OnMealRemoveLi
         String todayDate = dateFormat.format(new Date());
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.enableNetwork();
         DocumentReference mealRef = db.collection("meals").document(todayDate);
 
         mealRef.get().addOnCompleteListener(task -> {
@@ -454,6 +456,7 @@ public class HomeFragment extends Fragment implements MealAdapter.OnMealRemoveLi
                     if (showLoad) customProgressDialog.dismiss();
                 }
             } else {
+                showSnackbar("error");
                 if (showLoad) customProgressDialog.dismiss();
             }
         });

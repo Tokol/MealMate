@@ -97,6 +97,7 @@ public class DailyPlanFragment extends Fragment  implements MealSelectionBottomS
         firestoreHelper.loadRecipes(recipeList -> recipeLists = recipeList);
         customProgressDialog.dismiss();
 
+
     }
 
     private void setupButtonListeners() {
@@ -115,6 +116,18 @@ public class DailyPlanFragment extends Fragment  implements MealSelectionBottomS
     private void loadMealPlan() {
         customProgressDialog.show();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.enableNetwork().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d("Firestore", "Network enabled. Fetching meals...");
+               // loadMealPlan(); // Reload meals
+            } else {
+                Log.e("Firestore", "Failed to enable Firestore network", task.getException());
+            }
+
+        });
+//
+//        customProgressDialog.show();
         DocumentReference mealRef = db.collection("meals").document(selectedDate);
 
         mealRef.get().addOnCompleteListener(task -> {
@@ -271,6 +284,10 @@ public class DailyPlanFragment extends Fragment  implements MealSelectionBottomS
                             showSnackbar("Error adding meals");
                         });
             } else {
+                Exception e = task.getException();
+                if (e != null) {
+                    Log.e("FirestoreError", "Error retrieving document: " + e.getMessage(), e);
+                }
                 showSnackbar("Error retrieving document");
                 customProgressDialog.dismiss();
             }
