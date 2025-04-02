@@ -1,5 +1,6 @@
 package edu.suresh.mealmate.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -92,6 +93,7 @@ public class GroceryAdapter extends RecyclerView.Adapter<GroceryAdapter.GroceryV
         TextView progressText;
         RecyclerView ingredientRecyclerView;
 
+        @SuppressLint("WrongViewCast")
         public GroceryViewHolder(@NonNull View itemView) {
             super(itemView);
             categoryTitle = itemView.findViewById(R.id.mealTitle);
